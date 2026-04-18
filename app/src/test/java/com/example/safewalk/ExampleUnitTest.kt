@@ -1,4 +1,4 @@
-package com.example.safeher
+package com.example.safewalk
 
 import org.junit.Test
 

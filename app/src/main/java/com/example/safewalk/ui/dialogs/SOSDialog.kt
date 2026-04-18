@@ -1,12 +1,12 @@
-package com.example.safeher.ui.dialogs
+package com.example.safewalk.ui.dialogs
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
-import com.example.safeher.R
-import com.example.safeher.databinding.DialogSosBinding
+import com.example.safewalk.R
+import com.example.safewalk.databinding.DialogSosBinding
 
 class SOSDialog : DialogFragment() {
 
