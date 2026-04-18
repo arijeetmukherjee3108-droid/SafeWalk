@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="color_void">#0A0A0F</color>
+    <color name="surface">#111118</color>
+    <color name="panel">#16161F</color>
+    <color name="border">#0FFFFFFF</color> <!-- #FFFFFF0F -->
+    <color name="glass">#07FFFFFF</color> <!-- #FFFFFF07 -->
+    <color name="ember">#FF4136</color>
+    <color name="ember_glow">#40FF4136</color> <!-- #FF413640 -->
+    <color name="amber">#FFB347</color>
+    <color name="safe">#00E5A0</color>
+    <color name="safe_glow">#2000E5A0</color> <!-- #00E5A020 -->
+    <color name="pulse">#C084FC</color>
+    <color name="muted">#40FFFFFF</color> <!-- #FFFFFF40 -->
+    <color name="text">#F0F0F5</color>
+    <color name="sub">#888899</color>
+
+    <!-- Standard colors for reference if needed -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

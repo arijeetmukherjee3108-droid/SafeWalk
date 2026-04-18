@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/surface"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Profile Hero -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingVertical="20dp">
+
+        <FrameLayout
+            android:layout_width="56dp"
+            android:layout_height="56dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_avatar_large" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="RS"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Riya Sharma"
+            android:textColor="@color/text"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="riya@example.com • New Delhi"
+            android:textColor="@color/sub"
+            android:textSize="9sp" />
+    </LinearLayout>
+
+    <!-- Settings List -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_panel_rounded_14"
+        android:orientation="vertical">
+
+        <!-- Trusted Contacts -->
+        <LinearLayout style="@style/ProfileRow">
+            <TextView style="@style/ProfileRowLabel" android:text="Trusted Contacts" />
+            <TextView style="@style/ProfileBadge" android:text="3" />
+            <TextView style="@style/ProfileChevron" android:text="›" />
+        </LinearLayout>
+
+        <View style="@style/ProfileDivider" />
+
+        <!-- Guardian Mode -->
+        <LinearLayout style="@style/ProfileRow">
+            <TextView style="@style/ProfileRowLabel" android:text="Guardian Mode" />
+            <androidx.appcompat.widget.SwitchCompat
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:thumb="@drawable/switch_thumb"
+                app:track="@drawable/switch_track" />
+        </LinearLayout>
+
+        <View style="@style/ProfileDivider" />
+
+        <!-- My Reports -->
+        <LinearLayout style="@style/ProfileRow">
+            <TextView style="@style/ProfileRowLabel" android:text="My Reports" />
+            <TextView style="@style/ProfileBadge" android:text="7" />
+            <TextView style="@style/ProfileChevron" android:text="›" />
+        </LinearLayout>
+
+        <View style="@style/ProfileDivider" />
+
+        <!-- Notifications -->
+        <LinearLayout style="@style/ProfileRow">
+            <TextView style="@style/ProfileRowLabel" android:text="Notifications" />
+            <TextView style="@style/ProfileChevron" android:text="›" />
+        </LinearLayout>
+
+        <View style="@style/ProfileDivider" />
+
+        <!-- Privacy & Permissions -->
+        <LinearLayout style="@style/ProfileRow">
+            <TextView style="@style/ProfileRowLabel" android:text="Privacy &amp; Permissions" />
+            <TextView style="@style/ProfileChevron" android:text="›" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Log Out Button -->
+    <Button
+        android:id="@+id/logoutButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/panel"
+        android:text="Log Out"
+        android:textAllCaps="false"
+        android:textColor="@color/ember"
+        android:textStyle="bold"
+        app:cornerRadius="10dp"
+        app:strokeColor="@color/ember"
+        app:strokeWidth="1dp" />
+
+</LinearLayout>

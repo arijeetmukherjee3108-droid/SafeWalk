@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.map.MapFragment">
+
+    <!-- Map Canvas -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Search Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@drawable/bg_panel_rounded"
+        android:backgroundTint="@color/surface"
+        android:elevation="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔍"
+            android:textSize="14sp" />
+
+        <EditText
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="Where to? Search a destination…"
+            android:textColor="@color/text"
+            android:textColorHint="@color/sub"
+            android:textSize="8.5sp" />
+    </LinearLayout>
+
+    <!-- Route Legend -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/bg_panel_rounded"
+        android:backgroundTint="@color/surface"
+        android:elevation="4dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="8dp">
+
+        <LinearLayout
+            style="@style/LegendItem"
+            android:layout_width="0dp"
+            android:layout_weight="1">
+            <View style="@style/LegendDot" android:backgroundTint="@color/safe" />
+            <TextView style="@style/LegendLabel" android:text="Safest" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/LegendItem"
+            android:layout_width="0dp"
+            android:layout_weight="1">
+            <View style="@style/LegendDot" android:backgroundTint="@color/amber" />
+            <TextView style="@style/LegendLabel" android:text="Fastest" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/LegendItem"
+            android:layout_width="0dp"
+            android:layout_weight="1">
+            <View style="@style/LegendDot" android:backgroundTint="@color/ember" />
+            <TextView style="@style/LegendLabel" android:text="Shortest" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/LegendItem"
+            android:layout_width="0dp"
+            android:layout_weight="1">
+            <View style="@style/LegendDot" android:backgroundTint="@color/pulse" />
+            <TextView style="@style/LegendLabel" android:text="Heatmap" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

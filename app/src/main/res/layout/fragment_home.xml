@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_void"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp">
+
+        <!-- Top Greeting Bar -->
+        <LinearLayout
+            android:id="@+id/topBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="12dp"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/greetingText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hey Priya"
+                    android:textColor="@color/text"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mumbai, IN · Safe"
+                    android:textColor="@color/sub"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <View
+                android:id="@+id/avatarView"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_avatar" />
+        </LinearLayout>
+
+        <!-- Guardian Mode Toggle -->
+        <LinearLayout
+            android:id="@+id/guardianContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_panel_rounded"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shield"
+                android:textSize="20sp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Guardian Mode"
+                    android:textColor="@color/text"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Real-time location sharing"
+                    android:textColor="@color/sub"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/guardianModeToggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:thumb="@drawable/switch_thumb"
+                app:track="@drawable/switch_track"
+                android:checked="true"/>
+        </LinearLayout>
+
+        <!-- SOS Zone -->
+        <LinearLayout
+            android:id="@+id/sosZone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:id="@+id/sosButton"
+                android:layout_width="200dp"
+                android:layout_height="200dp">
+
+                <View
+                    android:id="@+id/pulseRing"
+                    android:layout_width="170dp"
+                    android:layout_height="170dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_sos_pulse"
+                    android:alpha="0.4" />
+
+                <ProgressBar
+                    android:id="@+id/sosProgress"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_gravity="center"
+                    android:indeterminate="false"
+                    android:max="100"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/bg_sos_ring_progress"
+                    style="?android:attr/progressBarStyleHorizontal" />
+
+                <FrameLayout
+                    android:layout_width="130dp"
+                    android:layout_height="130dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_sos_inner"
+                    android:elevation="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="SOS"
+                        android:textColor="@color/ember"
+                        android:textSize="32sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Hold 3s for Emergency"
+                android:textColor="@color/sub"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Quick Actions Grid -->
+        <GridLayout
+            android:id="@+id/quickActionsGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:paddingHorizontal="14dp">
+
+                <androidx.cardview.widget.CardView
+                android:id="@+id/actionSafeRoute"
+                style="@style/QuickActionCard"
+                android:layout_columnWeight="1"
+                android:layout_width="0dp">
+                <LinearLayout style="@style/QuickActionContent">
+                    <TextView style="@style/QuickActionIcon" android:text="Map" />
+                    <TextView style="@style/QuickActionTitle" android:text="Safe Route" />
+                    <TextView style="@style/QuickActionSubtitle" android:text="Navigate safely" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Report -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/actionReport"
+                style="@style/QuickActionCard"
+                android:layout_columnWeight="1"
+                android:layout_width="0dp">
+                <LinearLayout style="@style/QuickActionContent">
+                    <TextView style="@style/QuickActionIcon" android:text="Note" />
+                    <TextView style="@style/QuickActionTitle" android:text="Report" />
+                    <TextView style="@style/QuickActionSubtitle" android:text="Flag incident" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Guardians -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/actionGuardians"
+                style="@style/QuickActionCard"
+                android:layout_columnWeight="1"
+                android:layout_width="0dp">
+                <LinearLayout style="@style/QuickActionContent">
+                    <TextView style="@style/QuickActionIcon" android:text="Group" />
+                    <TextView style="@style/QuickActionTitle" android:text="Guardians" />
+                    <TextView style="@style/QuickActionSubtitle" android:text="Trust contacts" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Alerts -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/actionAlerts"
+                style="@style/QuickActionCard"
+                android:layout_columnWeight="1"
+                android:layout_width="0dp">
+                <LinearLayout style="@style/QuickActionContent">
+                    <TextView style="@style/QuickActionIcon" android:text="Bell" />
+                    <TextView style="@style/QuickActionTitle" android:text="Alerts" />
+                    <TextView style="@style/QuickActionSubtitle" android:text="Nearby news" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+        </GridLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

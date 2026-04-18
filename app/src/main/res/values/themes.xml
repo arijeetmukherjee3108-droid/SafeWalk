@@ -1,0 +1,11 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.SafeHer" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/color_void</item>
+        <item name="android:statusBarColor">@color/color_void</item>
+        <item name="android:navigationBarColor">@color/color_void</item>
+        <item name="colorPrimary">@color/ember</item>
+    </style>
+
+    <style name="Theme.SafeHer" parent="Base.Theme.SafeHer" />
+</resources>
