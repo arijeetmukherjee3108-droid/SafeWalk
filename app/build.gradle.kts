@@ -1,17 +1,14 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.safeher"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    namespace = "com.example.safewalk"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.safeher"
+        applicationId = "com.example.safewalk"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -61,6 +58,7 @@ dependencies {
     // Maps & Location
     implementation(libs.play.services.maps)
     implementation(libs.play.services.location)
+    implementation(libs.play.services.auth)
 
     // Retrofit
     implementation(libs.retrofit)
@@ -69,6 +67,9 @@ dependencies {
     // Navigation
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+
+    // Glide
+    implementation(libs.glide)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1,114 +1,113 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_bottom_sheet"
     android:orientation="vertical"
-    android:padding="20dp">
+    android:padding="24dp">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:background="@color/panel" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Guardian Alert"
+        android:text="Trusted Guardians"
         android:textColor="@color/text"
-        android:textSize="14sp"
-        android:textStyle="bold" />
-
-    <FrameLayout
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_gravity="center"
-        android:layout_marginVertical="16dp"
-        android:background="@drawable/bg_brand_icon">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="SOS"
-            android:textColor="@color/white"
-            android:textStyle="bold"
-            android:textSize="14sp" />
-    </FrameLayout>
-
-    <TextView
-        android:id="@+id/alertContactName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Riya Sharma triggered SOS!"
-        android:textColor="@color/ember"
-        android:textSize="14sp"
+        android:textSize="20sp"
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/lastSeenLocation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
         android:layout_marginTop="4dp"
-        android:text="Last seen: Hauz Khas • 2 min ago"
+        android:text="These people will receive your SOS alerts."
         android:textColor="@color/sub"
-        android:textSize="10sp" />
+        android:textSize="14sp" />
 
+    <!-- List of Guardians (Simple for now) -->
     <LinearLayout
+        android:id="@+id/guardianList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="vertical" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="20dp"
+        android:background="@color/panel" />
+
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:text="Add New Guardian"
+        android:textColor="@color/text"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        app:hintEnabled="false">
 
-        <View
-            android:layout_width="6dp"
-            android:layout_height="6dp"
-            android:background="@drawable/bg_status_dot_red" />
-
-        <TextView
-            android:layout_width="wrap_content"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/guardianNameInput"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:text="Real-time location updating…"
-            android:textColor="@color/sub"
-            android:textSize="10sp" />
-    </LinearLayout>
+            android:background="@drawable/bg_input"
+            android:hint="Guardian Name"
+            android:inputType="textPersonName"
+            android:padding="16dp"
+            android:textColor="@color/text"
+            android:textColorHint="@color/sub" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:hintEnabled="false">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/guardianPhoneInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_input"
+            android:hint="Phone Number"
+            android:inputType="phone"
+            android:padding="16dp"
+            android:textColor="@color/text"
+            android:textColorHint="@color/sub" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <Button
-        android:id="@+id/callNowButton"
+        android:id="@+id/addGuardianButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:backgroundTint="@color/ember"
-        android:text="Call Now"
+        android:text="Add Guardian"
         android:textAllCaps="false"
         android:textColor="@color/white"
         android:textStyle="bold"
-        app:cornerRadius="10dp" />
-
-    <Button
-        android:id="@+id/trackLiveButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:backgroundTint="@color/panel"
-        android:text="Track Live"
-        android:textAllCaps="false"
-        android:textColor="@color/ember"
-        app:cornerRadius="10dp"
-        app:strokeColor="@color/ember"
-        app:strokeWidth="1dp" />
+        app:cornerRadius="12dp" />
 
     <Button
         android:id="@+id/dismissButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:backgroundTint="@color/panel"
+        android:backgroundTint="@android:color/transparent"
         android:text="Dismiss"
         android:textAllCaps="false"
-        android:textColor="@color/sub"
-        app:cornerRadius="10dp" />
+        android:textColor="@color/sub" />
 
 </LinearLayout>

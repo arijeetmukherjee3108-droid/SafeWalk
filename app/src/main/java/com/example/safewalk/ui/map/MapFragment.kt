@@ -1,12 +1,12 @@
-package com.example.safeher.ui.map
+package com.example.safewalk.ui.map
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.safeher.R
-import com.example.safeher.databinding.FragmentMapBinding
+import com.example.safewalk.R
+import com.example.safewalk.databinding.FragmentMapBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback

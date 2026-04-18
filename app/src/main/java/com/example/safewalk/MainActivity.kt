@@ -1,10 +1,10 @@
-package com.example.safeher
+package com.example.safewalk
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
-import com.example.safeher.databinding.ActivityMainBinding
+import com.example.safewalk.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 

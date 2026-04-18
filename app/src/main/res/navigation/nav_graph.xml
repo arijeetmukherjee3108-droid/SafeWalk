@@ -7,25 +7,25 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="com.example.safeher.ui.home.HomeFragment"
+        android:name="com.example.safewalk.ui.home.HomeFragment"
         android:label="Home"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/navigation_map"
-        android:name="com.example.safeher.ui.map.MapFragment"
+        android:name="com.example.safewalk.ui.map.MapFragment"
         android:label="Map"
         tools:layout="@layout/fragment_map" />
 
     <fragment
         android:id="@+id/navigation_report"
-        android:name="com.example.safeher.ui.report.ReportFragment"
+        android:name="com.example.safewalk.ui.report.ReportFragment"
         android:label="Report"
         tools:layout="@layout/fragment_report" />
 
     <fragment
         android:id="@+id/navigation_profile"
-        android:name="com.example.safeher.ui.profile.ProfileFragment"
+        android:name="com.example.safewalk.ui.profile.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile" />
 </navigation>

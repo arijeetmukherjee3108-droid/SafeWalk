@@ -1,4 +1,4 @@
-package com.example.safeher.ui.home
+package com.example.safewalk.ui.home
 
 import android.os.Bundle
 import android.os.Handler
@@ -9,10 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.example.safeher.R
-import com.example.safeher.databinding.FragmentHomeBinding
-import com.example.safeher.ui.dialogs.GuardianSheet
-import com.example.safeher.ui.dialogs.SOSDialog
+import com.example.safewalk.R
+import com.example.safewalk.databinding.FragmentHomeBinding
+import com.example.safewalk.ui.dialogs.GuardianSheet
+import com.example.safewalk.ui.dialogs.SOSDialog
 
 class HomeFragment : Fragment() {
 

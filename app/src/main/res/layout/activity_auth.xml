@@ -43,7 +43,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="SafeHer"
+                android:text="SafeWalk"
                 android:textSize="28sp"
                 android:textStyle="bold"
                 android:textColor="@color/text"
@@ -284,6 +284,7 @@
             app:layout_constraintBottom_toBottomOf="parent">
 
             <LinearLayout
+                android:id="@+id/googleSignInButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -291,7 +292,9 @@
                 android:background="@drawable/bg_social_button"
                 android:gravity="center"
                 android:paddingVertical="16dp"
-                android:elevation="3dp">
+                android:elevation="3dp"
+                android:clickable="true"
+                android:focusable="true">
 
                 <TextView
                     android:layout_width="wrap_content"
