@@ -1,5 +1,6 @@
 package com.example.safewalk.ui.home
 
+import android.location.Geocoder
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -14,11 +15,13 @@ import com.example.safewalk.ui.dialogs.GuardianSheet
 import com.example.safewalk.ui.dialogs.SOSDialog
 
 import android.widget.Toast
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import java.util.Locale
 
 class HomeFragment : Fragment() {
 
@@ -42,9 +45,55 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        setupGreeting()
+        setupLocation()
         startPulseAnimation()
         setupListeners()
         checkUserPhone()
+    }
+
+    private fun setupGreeting() {
+        val displayName = auth.currentUser?.displayName
+        val firstName = displayName?.split(" ")?.firstOrNull() ?: "there"
+        binding.greetingText.text = "Hey $firstName"
+    }
+
+    private fun setupLocation() {
+        if (androidx.core.content.ContextCompat.checkSelfPermission(
+                requireContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            binding.locationText.text = "Location permission needed"
+            return
+        }
+
+        val fusedClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        fusedClient.lastLocation.addOnSuccessListener { location ->
+            if (_binding == null) return@addOnSuccessListener
+            if (location != null) {
+                try {
+                    val geocoder = Geocoder(requireContext(), Locale.getDefault())
+                    val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                    if (!addresses.isNullOrEmpty()) {
+                        val addr = addresses[0]
+                        val city = addr.locality ?: addr.subAdminArea ?: "Unknown"
+                        val country = addr.countryCode ?: ""
+                        binding.locationText.text = "$city, $country · Safe"
+                    } else {
+                        binding.locationText.text = "Location found · Safe"
+                    }
+                } catch (e: Exception) {
+                    binding.locationText.text = "Location found · Safe"
+                }
+            } else {
+                binding.locationText.text = "Location unavailable"
+            }
+        }.addOnFailureListener {
+            if (_binding != null) {
+                binding.locationText.text = "Location unavailable"
+            }
+        }
     }
 
     private fun checkUserPhone() {

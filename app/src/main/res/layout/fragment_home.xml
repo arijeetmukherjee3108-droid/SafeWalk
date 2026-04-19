@@ -40,9 +40,10 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/locationText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Mumbai, IN · Safe"
+                    android:text="Fetching location…"
                     android:textColor="@color/sub"
                     android:textSize="14sp" />
             </LinearLayout>
@@ -110,6 +111,17 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
+        <!-- Section Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginBottom="12dp"
+            android:text="Quick Actions"
+            android:textColor="@color/text"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
         <!-- Quick Actions Grid -->
         <GridLayout
             android:id="@+id/quickActionsGrid"
@@ -118,56 +130,198 @@
             android:columnCount="2"
             android:paddingHorizontal="14dp">
 
-                <androidx.cardview.widget.CardView
+            <!-- Safe Route -->
+            <LinearLayout
                 android:id="@+id/actionSafeRoute"
-                style="@style/QuickActionCard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
-                android:layout_width="0dp">
-                <LinearLayout style="@style/QuickActionContent">
-                    <TextView style="@style/QuickActionIcon" android:text="Map" />
-                    <TextView style="@style/QuickActionTitle" android:text="Safe Route" />
-                    <TextView style="@style/QuickActionSubtitle" android:text="Navigate safely" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_action_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <FrameLayout
+                    android:layout_width="42dp"
+                    android:layout_height="42dp">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_icon_safe" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="🗺️"
+                        android:textSize="18sp" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Safe Route"
+                    android:textColor="@color/text"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Navigate safely"
+                    android:textColor="@color/sub"
+                    android:textSize="12sp" />
+            </LinearLayout>
 
             <!-- Report -->
-            <androidx.cardview.widget.CardView
+            <LinearLayout
                 android:id="@+id/actionReport"
-                style="@style/QuickActionCard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
-                android:layout_width="0dp">
-                <LinearLayout style="@style/QuickActionContent">
-                    <TextView style="@style/QuickActionIcon" android:text="Note" />
-                    <TextView style="@style/QuickActionTitle" android:text="Report" />
-                    <TextView style="@style/QuickActionSubtitle" android:text="Flag incident" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_action_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <FrameLayout
+                    android:layout_width="42dp"
+                    android:layout_height="42dp">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_icon_ember" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="🚨"
+                        android:textSize="18sp" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Report"
+                    android:textColor="@color/text"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Flag incident"
+                    android:textColor="@color/sub"
+                    android:textSize="12sp" />
+            </LinearLayout>
 
             <!-- Guardians -->
-            <androidx.cardview.widget.CardView
+            <LinearLayout
                 android:id="@+id/actionGuardians"
-                style="@style/QuickActionCard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
-                android:layout_width="0dp">
-                <LinearLayout style="@style/QuickActionContent">
-                    <TextView style="@style/QuickActionIcon" android:text="Group" />
-                    <TextView style="@style/QuickActionTitle" android:text="Guardians" />
-                    <TextView style="@style/QuickActionSubtitle" android:text="Trust contacts" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_action_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <FrameLayout
+                    android:layout_width="42dp"
+                    android:layout_height="42dp">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_icon_pulse" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="👥"
+                        android:textSize="18sp" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Guardians"
+                    android:textColor="@color/text"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Trust contacts"
+                    android:textColor="@color/sub"
+                    android:textSize="12sp" />
+            </LinearLayout>
 
             <!-- Alerts -->
-            <androidx.cardview.widget.CardView
+            <LinearLayout
                 android:id="@+id/actionAlerts"
-                style="@style/QuickActionCard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
-                android:layout_width="0dp">
-                <LinearLayout style="@style/QuickActionContent">
-                    <TextView style="@style/QuickActionIcon" android:text="Bell" />
-                    <TextView style="@style/QuickActionTitle" android:text="Alerts" />
-                    <TextView style="@style/QuickActionSubtitle" android:text="Nearby news" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_action_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <FrameLayout
+                    android:layout_width="42dp"
+                    android:layout_height="42dp">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_icon_amber" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="🔔"
+                        android:textSize="18sp" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Alerts"
+                    android:textColor="@color/text"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Nearby news"
+                    android:textColor="@color/sub"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
         </GridLayout>
 
     </LinearLayout>

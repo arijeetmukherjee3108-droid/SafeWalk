@@ -37,9 +37,17 @@ class ReportAdapter : ListAdapter<Report, ReportAdapter.ReportViewHolder>(Report
 
             if (!report.imageUrl.isNullOrEmpty()) {
                 binding.reportImage.visibility = View.VISIBLE
-                Glide.with(binding.reportImage.context)
-                    .load(report.imageUrl)
-                    .into(binding.reportImage)
+                if (report.imageUrl.startsWith("data:image")) {
+                    // Decode Base64 data URI
+                    val base64Data = report.imageUrl.substringAfter("base64,")
+                    val bytes = android.util.Base64.decode(base64Data, android.util.Base64.NO_WRAP)
+                    val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    binding.reportImage.setImageBitmap(bitmap)
+                } else {
+                    Glide.with(binding.reportImage.context)
+                        .load(report.imageUrl)
+                        .into(binding.reportImage)
+                }
             } else {
                 binding.reportImage.visibility = View.GONE
             }
