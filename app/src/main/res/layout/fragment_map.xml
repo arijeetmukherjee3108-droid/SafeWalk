@@ -28,14 +28,39 @@
         android:paddingBottom="12dp">
 
         <!-- Title Row -->
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/routeInputHeader"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:text="Plan Safe Route"
-            android:textColor="@color/text"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Plan Safe Route"
+                android:textColor="@color/text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/ivCollapseExpand"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/arrow_up_float"
+                app:tint="@color/sub" />
+        </LinearLayout>
+
+        <!-- Input Fields Container -->
+        <LinearLayout
+            android:id="@+id/routeInputFields"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
         <!-- Start Point -->
         <LinearLayout
@@ -122,6 +147,7 @@
             android:textStyle="bold"
             app:cornerRadius="10dp" />
 
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Selection Overlay (Visible only in Pick Mode) -->
@@ -191,15 +217,12 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/routeInfoText"
+        <LinearLayout
+            android:id="@+id/routeContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:lineSpacingExtra="4dp"
-            android:text="Analyzing routes…"
-            android:textColor="@color/sub"
-            android:textSize="12sp" />
+            android:layout_marginTop="8dp"
+            android:orientation="vertical" />
 
         <Button
             android:id="@+id/btnStartNav"

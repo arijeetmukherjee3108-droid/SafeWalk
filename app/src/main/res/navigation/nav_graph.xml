@@ -52,6 +52,10 @@
             android:name="locationName"
             app:argType="string"
             app:nullable="true" />
+        <argument
+            android:name="suspectName"
+            app:argType="string"
+            app:nullable="true" />
     </fragment>
 
     <fragment
@@ -65,4 +69,10 @@
         android:name="com.example.safewalk.ui.profile.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/navigation_alerts"
+        android:name="com.example.safewalk.ui.alerts.AlertsFragment"
+        android:label="Alerts"
+        tools:layout="@layout/fragment_alerts" />
 </navigation>

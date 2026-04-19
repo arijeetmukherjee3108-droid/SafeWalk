@@ -3,7 +3,7 @@
     <color name="color_void">#0A0A0F</color>
     <color name="surface">#111118</color>
     <color name="panel">#16161F</color>
-    <color name="border">#0FFFFFFF</color> <!-- #FFFFFF0F -->
+    <color name="border">#4DFFFFFF</color> <!-- #FFFFFF4D -->
     <color name="glass">#07FFFFFF</color> <!-- #FFFFFF07 -->
     <color name="ember">#FF4136</color>
     <color name="ember_glow">#40FF4136</color> <!-- #FF413640 -->

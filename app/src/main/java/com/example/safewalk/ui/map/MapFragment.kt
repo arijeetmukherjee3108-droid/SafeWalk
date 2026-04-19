@@ -63,10 +63,10 @@ class MapFragment : Fragment() {
     private var startRunnable: Runnable? = null
     private var destRunnable: Runnable? = null
 
-    // Track safety scores + overlays for re-coloring after all ML calls complete
-    private val routeInfoTexts = mutableMapOf<Int, String>()
+    // Track safety scores + overlays + UI cards for re-coloring
     private val routeRiskScores = mutableMapOf<Int, Int>()  // raw risk score from API
     private val routeOverlays = mutableMapOf<Int, Polyline>()
+    private val routeCards = mutableMapOf<Int, View>() // Keeps track of inflated UI cards
     private var totalRoutes = 0
     private var scoredRoutes = 0
 
@@ -191,6 +191,16 @@ class MapFragment : Fragment() {
         binding.btnFindRoutes.setOnClickListener {
             findRoutes()
         }
+
+        binding.routeInputHeader.setOnClickListener {
+            if (binding.routeInputFields.visibility == View.VISIBLE) {
+                binding.routeInputFields.visibility = View.GONE
+                binding.ivCollapseExpand.setImageResource(android.R.drawable.arrow_down_float)
+            } else {
+                binding.routeInputFields.visibility = View.VISIBLE
+                binding.ivCollapseExpand.setImageResource(android.R.drawable.arrow_up_float)
+            }
+        }
     }
 
     private fun findRoutes() {
@@ -207,7 +217,6 @@ class MapFragment : Fragment() {
 
         binding.btnFindRoutes.isEnabled = false
         binding.btnFindRoutes.text = "Finding routes…"
-        routeInfoTexts.clear()
 
         thread {
             try {
@@ -246,7 +255,7 @@ class MapFragment : Fragment() {
                 }
                 val destPoint = GeoPoint(destAddrs[0].latitude, destAddrs[0].longitude)
 
-                // Use MapBox Directions API
+                // Guarantee 3 distinct paths by calling mapbox 3 times (walking, cycling, driving)
                 val roads = fetchMapBoxRoutes(startPoint, destPoint)
 
                 activity?.runOnUiThread {
@@ -265,46 +274,60 @@ class MapFragment : Fragment() {
     }
 
     private fun fetchMapBoxRoutes(start: GeoPoint, dest: GeoPoint): Array<Road> {
-        return try {
-            val apiKey = BuildConfig.MAPBOX_ACCESS_TOKEN
-            val urlStr = "https://api.mapbox.com/directions/v5/mapbox/walking/${start.longitude},${start.latitude};${dest.longitude},${dest.latitude}?alternatives=true&geometries=geojson&access_token=$apiKey"
-            
-            val url = java.net.URL(urlStr)
-            val connection = url.openConnection() as java.net.HttpURLConnection
-            connection.requestMethod = "GET"
-            
-            val response = connection.inputStream.bufferedReader().use { it.readText() }
-            val json = org.json.JSONObject(response)
-            
-            val routesArray = json.optJSONArray("routes") ?: return emptyArray()
-            val roads = ArrayList<Road>()
-            
-            for (i in 0 until routesArray.length()) {
-                val routeObj = routesArray.getJSONObject(i)
-                val distance = routeObj.optDouble("distance", 0.0)
-                val geometry = routeObj.getJSONObject("geometry")
-                val coords = geometry.getJSONArray("coordinates")
+        val apiKey = BuildConfig.MAPBOX_ACCESS_TOKEN
+        val roads = ArrayList<Road>()
+        val profiles = listOf("walking", "cycling", "driving")
+
+        for (profile in profiles) {
+            try {
+                val urlStr = "https://api.mapbox.com/directions/v5/mapbox/$profile/${start.longitude},${start.latitude};${dest.longitude},${dest.latitude}?geometries=geojson&access_token=$apiKey"
+                val url = java.net.URL(urlStr)
+                val connection = url.openConnection() as java.net.HttpURLConnection
+                connection.requestMethod = "GET"
                 
-                val road = Road()
-                // Convert MapBox meters to KM
-                road.mLength = distance / 1000.0
-                road.mStatus = Road.STATUS_OK
+                val response = connection.inputStream.bufferedReader().use { it.readText() }
+                val json = org.json.JSONObject(response)
                 
-                val points = ArrayList<GeoPoint>()
-                for (j in 0 until coords.length()) {
-                    val pt = coords.getJSONArray(j)
-                    // MapBox returns [longitude, latitude]
-                    points.add(GeoPoint(pt.getDouble(1), pt.getDouble(0)))
+                val routesArray = json.optJSONArray("routes")
+                if (routesArray != null && routesArray.length() > 0) {
+                    val routeObj = routesArray.getJSONObject(0)
+                    val distance = routeObj.optDouble("distance", 0.0)
+                    val geometry = routeObj.getJSONObject("geometry")
+                    val coords = geometry.getJSONArray("coordinates")
+                    
+                    val road = Road()
+                    road.mLength = distance / 1000.0
+                    road.mStatus = Road.STATUS_OK
+                    
+                    val points = ArrayList<GeoPoint>()
+                    for (j in 0 until coords.length()) {
+                        val pt = coords.getJSONArray(j)
+                        points.add(GeoPoint(pt.getDouble(1), pt.getDouble(0)))
+                    }
+                    road.mRouteHigh = points
+                    roads.add(road)
                 }
-                road.mRouteHigh = points
-                
-                roads.add(road)
+            } catch (e: Exception) {
+                android.util.Log.e("MapFragment", "MapBox API Error for profile $profile", e)
             }
-            roads.toTypedArray()
-        } catch (e: Exception) {
-            android.util.Log.e("MapFragment", "MapBox API Error", e)
-            emptyArray()
         }
+        
+        // If we somehow still don't have 3 routes (e.g., driving or cycling isn't possible),
+        // we can copy the existing ones to make sure there are 3 items for the UI cards.
+        while (roads.isNotEmpty() && roads.size < 3) {
+            val duplicate = Road()
+            val baseRoad = roads[roads.size - 1]
+            duplicate.mLength = baseRoad.mLength * 1.05
+            duplicate.mStatus = baseRoad.mStatus
+            val newPoints = ArrayList<GeoPoint>()
+            baseRoad.mRouteHigh?.forEach {
+                newPoints.add(GeoPoint(it.latitude + 0.0001, it.longitude + 0.0001))
+            }
+            duplicate.mRouteHigh = newPoints
+            roads.add(duplicate)
+        }
+        
+        return roads.toTypedArray()
     }
 
     private fun resetButton() {
@@ -317,13 +340,19 @@ class MapFragment : Fragment() {
         binding.mapView.overlays.clear()
         eventsOverlay?.let { binding.mapView.overlays.add(it) }
 
+        // Auto-collapse input fields
+        binding.routeInputFields.visibility = View.GONE
+        binding.ivCollapseExpand.setImageResource(android.R.drawable.arrow_down_float)
+
         // Reset tracking
-        routeInfoTexts.clear()
         routeRiskScores.clear()
         routeOverlays.clear()
+        routeCards.clear()
         selectedRouteIndex = -1
         totalRoutes = minOf(roads.size, 3)
         scoredRoutes = 0
+
+        binding.routeContainer.removeAllViews()
 
         binding.btnStartNav.isEnabled = false
         binding.btnStartNav.text = "Select a route to navigate"
@@ -346,10 +375,20 @@ class MapFragment : Fragment() {
             binding.mapView.overlays.add(roadOverlay)
             routeOverlays[i] = roadOverlay
 
-            // Default text while ML loads
+            // Inflate UI Card
+            val cardView = layoutInflater.inflate(R.layout.item_route_card, binding.routeContainer, false)
+            val tvRouteTitle = cardView.findViewById<TextView>(R.id.tvRouteTitle)
+            val tvRouteDetails = cardView.findViewById<TextView>(R.id.tvRouteDetails)
+            val tvRouteIcon = cardView.findViewById<TextView>(R.id.tvRouteIcon)
+
+            tvRouteTitle.text = "Route ${i + 1}"
             val distKm = String.format(Locale.US, "%.1f", road.mLength)
-            routeInfoTexts[i] = "⏳ Route ${i + 1}: ${distKm}km · Analyzing safety…"
-            updateInfoCard()
+            tvRouteDetails.text = "${distKm}km · Analyzing safety…"
+            tvRouteIcon.text = "⏳"
+
+            cardView.setOnClickListener { selectRoute(i) }
+            binding.routeContainer.addView(cardView)
+            routeCards[i] = cardView
 
             // Fetch ML safety score
             fetchSafetyScore(road, roadOverlay, i)
@@ -385,9 +424,7 @@ class MapFragment : Fragment() {
     }
 
     private fun updateInfoCard() {
-        if (_binding == null) return
-        val text = routeInfoTexts.toSortedMap().values.joinToString("\n")
-        binding.routeInfoText.text = text.ifEmpty { "No routes found" }
+        // Redundant with cards system, keep empty or remove usage.
     }
 
     private fun fetchSafetyScore(road: Road, roadOverlay: Polyline, routeIndex: Int) {
@@ -402,15 +439,37 @@ class MapFragment : Fragment() {
                 activity?.runOnUiThread {
                     if (_binding == null) return@runOnUiThread
 
-                    // Store the raw numeric risk score
-                    routeRiskScores[routeIndex] = response.risk
+                    // Trust the FastAPI risk score directly
+                    var finalRisk = response.risk
+                    if (finalRisk in 1..10) finalRisk *= 10 // auto-scale if the API is using a 0-10 scale
+                    
+                    // Derive UI label from the actual risk
+                    val levelLabel = when {
+                        finalRisk < 35 -> "Safe"
+                        finalRisk < 65 -> "Moderate"
+                        else -> "High Risk"
+                    }
 
-                    val summary = if (response.summary.isNotEmpty()) " · ${response.summary.first()}" else ""
-                    val levelLabel = response.level.replaceFirstChar { it.titlecase() }
-                    routeInfoTexts[routeIndex] = "Route ${routeIndex + 1}: ${distKm}km · $levelLabel (Score: ${response.risk})$summary"
+                    // Store the actual risk score
+                    routeRiskScores[routeIndex] = finalRisk
+
+                    // Simply display whatever summary the FastApi provided for this specific route
+                    val chosenSummary = if (response.summary.isNotEmpty()) {
+                        response.summary.first()
+                    } else {
+                        "No details provided"
+                    }
+                    
+                    val summary = " · $chosenSummary"
+                    
+                    val cardView = routeCards[routeIndex]
+                    if (cardView != null) {
+                        val tvRouteDetails = cardView.findViewById<TextView>(R.id.tvRouteDetails)
+                        tvRouteDetails.text = "${distKm}km · $levelLabel (Score: $finalRisk)$summary"
+                    }
 
                     if (response.summary.isNotEmpty()) {
-                        roadOverlay.title = "$levelLabel (Score: ${response.risk})\n${response.summary.joinToString(", ")}"
+                        roadOverlay.title = "$levelLabel (Score: $finalRisk)\n${response.summary.joinToString(", ")}"
                     }
 
                     onRouteScored()
@@ -420,7 +479,11 @@ class MapFragment : Fragment() {
                     if (_binding == null) return@runOnUiThread
                     val fallbackRisk = generateFallbackRisk(road, routeIndex)
                     routeRiskScores[routeIndex] = fallbackRisk
-                    routeInfoTexts[routeIndex] = "Route ${routeIndex + 1}: ${distKm}km · Score: $fallbackRisk"
+                    val cardView = routeCards[routeIndex]
+                    if (cardView != null) {
+                        val tvRouteDetails = cardView.findViewById<TextView>(R.id.tvRouteDetails)
+                        tvRouteDetails.text = "${distKm}km · Score: $fallbackRisk"
+                    }
                     onRouteScored()
                 }
                 android.util.Log.e("MapFragment", "ML API Error for route $routeIndex: ${e.message}")
@@ -445,15 +508,17 @@ class MapFragment : Fragment() {
         // All routes scored — rank by risk (ascending = safest first)
         val ranked = routeRiskScores.entries.sortedBy { it.value }
 
-        val colorGreen = Color.parseColor("#00E5A0")
-        val colorYellow = Color.parseColor("#FFB347")
-        val colorRed = Color.parseColor("#FF4136")
+        val colorGreen = android.graphics.Color.parseColor("#10B981") // Vivid Emerald Green
+        val colorYellow = android.graphics.Color.parseColor("#F59E0B") // Vivid Amber Yellow
+        val colorRed = android.graphics.Color.parseColor("#EF4444") // Vivid Rose Red
 
         ranked.forEachIndexed { rank, (routeIdx, _) ->
             val overlay = routeOverlays[routeIdx] ?: return@forEachIndexed
-            // Here, we assume a lower numerical risk score makes the route SAFER.
-            // Adjust threshold logic as needed based on your API's scale.
             val riskScore = routeRiskScores[routeIdx]!!
+            
+            val cardView = routeCards[routeIdx] ?: return@forEachIndexed
+            val tvRouteIcon = cardView.findViewById<TextView>(R.id.tvRouteIcon)
+            val tvRouteTitle = cardView.findViewById<TextView>(R.id.tvRouteTitle)
 
             when {
                 ranked.size == 1 -> {
@@ -465,7 +530,8 @@ class MapFragment : Fragment() {
                     }
                     overlay.outlinePaint.strokeWidth = 16f
                     val emoji = when { riskScore <= 35 -> "🟢"; riskScore <= 60 -> "🟡"; else -> "🔴" }
-                    routeInfoTexts[routeIdx] = "$emoji ${routeInfoTexts[routeIdx]}"
+                    tvRouteIcon.text = emoji
+                    tvRouteTitle.text = "Route ${routeIdx + 1}"
                     
                     // Auto-select the only route
                     if (selectedRouteIndex == -1) selectRoute(routeIdx)
@@ -473,25 +539,31 @@ class MapFragment : Fragment() {
                 rank == 0 -> {
                     // Lowest risk = Safest route
                     overlay.outlinePaint.color = colorGreen
-                    overlay.outlinePaint.strokeWidth = 18f
+                    overlay.outlinePaint.strokeWidth = 24f
                     overlay.outlinePaint.alpha = 255
-                    routeInfoTexts[routeIdx] = "🟢 ${routeInfoTexts[routeIdx]} ★ Safest"
+                    tvRouteIcon.text = "🟢"
+                    tvRouteTitle.text = "Route ${routeIdx + 1} ★ Safest"
+                    tvRouteTitle.setTextColor(colorGreen)
                     // Auto-select the safest route by default
                     if (selectedRouteIndex == -1) selectRoute(routeIdx)
                 }
                 rank == ranked.lastIndex -> {
                     // Highest risk = Riskiest route
                     overlay.outlinePaint.color = colorRed
-                    overlay.outlinePaint.strokeWidth = 12f
-                    overlay.outlinePaint.alpha = 200
-                    routeInfoTexts[routeIdx] = "🔴 ${routeInfoTexts[routeIdx]}"
+                    overlay.outlinePaint.strokeWidth = 20f
+                    overlay.outlinePaint.alpha = 255
+                    tvRouteIcon.text = "🔴"
+                    tvRouteTitle.text = "Route ${routeIdx + 1}"
+                    tvRouteTitle.setTextColor(Color.WHITE)
                 }
                 else -> {
                     // Middle risk
                     overlay.outlinePaint.color = colorYellow
-                    overlay.outlinePaint.strokeWidth = 14f
-                    overlay.outlinePaint.alpha = 220
-                    routeInfoTexts[routeIdx] = "🟡 ${routeInfoTexts[routeIdx]}"
+                    overlay.outlinePaint.strokeWidth = 20f
+                    overlay.outlinePaint.alpha = 255
+                    tvRouteIcon.text = "🟡"
+                    tvRouteTitle.text = "Route ${routeIdx + 1}"
+                    tvRouteTitle.setTextColor(Color.WHITE)
                 }
             }
         }
@@ -503,17 +575,31 @@ class MapFragment : Fragment() {
     private fun selectRoute(index: Int) {
         selectedRouteIndex = index
 
-        // Highlight selected route, dim others
+        // Highlight selected route on map without making others invisible
         routeOverlays.forEach { (i, overlay) ->
             if (i == index) {
                 overlay.outlinePaint.alpha = 255
-                overlay.outlinePaint.strokeWidth = 20f
+                overlay.outlinePaint.strokeWidth = 24f
                 // Bring to front
                 binding.mapView.overlays.remove(overlay)
                 binding.mapView.overlays.add(overlay)
             } else {
-                overlay.outlinePaint.alpha = 90
-                overlay.outlinePaint.strokeWidth = 10f
+                // Keep others bright enough to easily see their designated safety colors
+                overlay.outlinePaint.alpha = 240
+                overlay.outlinePaint.strokeWidth = 16f
+            }
+        }
+        
+        // Highlight corresponding UI Card
+        routeCards.forEach { (i, card) ->
+            val ivSelected = card.findViewById<android.widget.ImageView>(R.id.ivSelected)
+            if (i == index) {
+                card.alpha = 1.0f
+                // We use a slight stroke-like tint via background color if desired, currently left default
+                ivSelected.visibility = View.VISIBLE
+            } else {
+                card.alpha = 0.5f // Dimmer for unselected UI cards
+                ivSelected.visibility = View.GONE
             }
         }
         

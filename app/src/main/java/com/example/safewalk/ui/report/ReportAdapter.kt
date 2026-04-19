@@ -25,7 +25,11 @@ class ReportAdapter : ListAdapter<Report, ReportAdapter.ReportViewHolder>(Report
     class ReportViewHolder(private val binding: ItemReportBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(report: Report) {
             binding.reportCategory.text = report.category
-            binding.reportDescription.text = report.description
+            binding.reportDescription.text = if (report.suspectName.isNotEmpty()) {
+                "👤 Suspect: ${report.suspectName}\n${report.description}"
+            } else {
+                report.description
+            }
             binding.reportLocation.text = report.locationName
             
             val timeAgo = DateUtils.getRelativeTimeSpanString(

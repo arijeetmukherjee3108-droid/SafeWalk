@@ -12,5 +12,7 @@ data class Report(
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val imageUrl: String? = null,
-    val timestamp: Long = 0
+    val suspectName: String = "",
+    val timestamp: Long = 0,
+    val txHash: String? = null
 )

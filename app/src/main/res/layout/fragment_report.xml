@@ -154,6 +154,28 @@
             android:textColorHint="@color/sub"
             android:textSize="14sp" />
 
+        <!-- SUSPECT NAME -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Suspect Name (optional)"
+            android:textColor="@color/sub"
+            android:textSize="12sp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/suspectNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_panel_rounded"
+            android:hint="Enter suspect name if known"
+            android:padding="14dp"
+            android:textColor="@color/text"
+            android:textColorHint="@color/sub"
+            android:textSize="14sp"
+            android:inputType="textPersonName" />
+
         <!-- EVIDENCE -->
         <TextView
             android:layout_width="wrap_content"

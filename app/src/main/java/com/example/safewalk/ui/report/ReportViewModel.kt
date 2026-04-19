@@ -13,4 +13,5 @@ class ReportViewModel : ViewModel() {
     val selectedCategory = MutableLiveData<String?>()
     val description = MutableLiveData<String>()
     val otherCategoryText = MutableLiveData<String>()
+    val suspectName = MutableLiveData<String>()
 }

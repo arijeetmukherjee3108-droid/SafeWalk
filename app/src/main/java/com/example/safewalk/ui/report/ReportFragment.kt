@@ -117,6 +117,11 @@ class ReportFragment : Fragment() {
                 binding.otherCategoryInput.setText(it)
             }
         }
+        viewModel.suspectName.observe(viewLifecycleOwner) {
+            if (binding.suspectNameInput.text.toString() != it) {
+                binding.suspectNameInput.setText(it)
+            }
+        }
     }
 
     private fun setupUI() {
@@ -179,6 +184,14 @@ class ReportFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 viewModel.otherCategoryText.value = s.toString()
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
+
+        binding.suspectNameInput.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                viewModel.suspectName.value = s.toString()
             }
             override fun afterTextChanged(s: android.text.Editable?) {}
         })
@@ -247,13 +260,16 @@ class ReportFragment : Fragment() {
             null
         }
 
+        val suspectName = binding.suspectNameInput.text.toString().trim()
+
         val action = ReportFragmentDirections.actionNavigationReportToReportPreviewFragment(
             category = category,
             description = description,
             imageUri = imageUrl,
             latitude = (viewModel.selectedLatitude.value ?: 0.0).toFloat(),
             longitude = (viewModel.selectedLongitude.value ?: 0.0).toFloat(),
-            locationName = viewModel.selectedLocation.value
+            locationName = viewModel.selectedLocation.value,
+            suspectName = suspectName.ifEmpty { null }
         )
         findNavController().navigate(action)
     }

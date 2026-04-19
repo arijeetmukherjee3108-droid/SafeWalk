@@ -70,6 +70,29 @@
             android:textColor="@color/text"
             android:textSize="14sp" />
 
+        <!-- SUSPECT NAME -->
+        <TextView
+            android:id="@+id/previewSuspectLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Suspect Name"
+            android:textColor="@color/sub"
+            android:textSize="12sp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/previewSuspectName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_panel_rounded"
+            android:padding="12dp"
+            android:text="Unknown"
+            android:textColor="@color/text"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
         <!-- EVIDENCE -->
         <TextView
             android:layout_width="wrap_content"

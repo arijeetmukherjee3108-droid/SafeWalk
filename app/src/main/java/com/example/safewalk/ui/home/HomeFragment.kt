@@ -202,7 +202,7 @@ class HomeFragment : Fragment() {
         }
 
         binding.actionAlerts.setOnClickListener {
-            Toast.makeText(context, "Coming Soon: Recent Alerts", Toast.LENGTH_SHORT).show()
+            requireActivity().findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottomNavigation).selectedItemId = R.id.navigation_alerts
         }
     }
 
