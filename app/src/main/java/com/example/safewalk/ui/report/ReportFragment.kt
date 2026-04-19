@@ -33,6 +33,7 @@ class ReportFragment : Fragment() {
     private var selectedLocation: String? = null
     private var selectedLatitude: Double? = null
     private var selectedLongitude: Double? = null
+    private var lastCheckedId = -1
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
@@ -77,11 +78,30 @@ class ReportFragment : Fragment() {
     }
 
     private fun setupUI() {
-        binding.categoryGroup.setOnCheckedChangeListener { _, checkedId ->
-            if (checkedId == R.id.btnOther) {
-                binding.otherCategoryInput.visibility = View.VISIBLE
-            } else {
-                binding.otherCategoryInput.visibility = View.GONE
+        val categoryButtons = listOf(
+            binding.btnHarassment,
+            binding.btnStalking,
+            binding.btnSuspicious,
+            binding.btnOther
+        )
+
+        categoryButtons.forEach { button ->
+            button.setOnClickListener {
+                if (lastCheckedId == button.id) {
+                    // Deselect if already selected
+                    button.isChecked = false
+                    lastCheckedId = -1
+                } else {
+                    // Select new one, deselect all others
+                    categoryButtons.forEach { it.isChecked = (it.id == button.id) }
+                    lastCheckedId = button.id
+                }
+                
+                // Show/hide "Other" input field
+                binding.otherCategoryInput.visibility = if (lastCheckedId == R.id.btnOther) View.VISIBLE else View.GONE
+                if (lastCheckedId != R.id.btnOther) {
+                    binding.otherCategoryInput.text.clear()
+                }
             }
         }
 
@@ -124,7 +144,7 @@ class ReportFragment : Fragment() {
     }
 
     private fun submitReport() {
-        val checkedId = binding.categoryGroup.checkedRadioButtonId
+        val checkedId = lastCheckedId
         if (checkedId == -1) {
             Toast.makeText(context, "Please select a category", Toast.LENGTH_SHORT).show()
             return
@@ -134,7 +154,8 @@ class ReportFragment : Fragment() {
             R.id.btnHarassment -> "Harassment"
             R.id.btnStalking -> "Stalking"
             R.id.btnSuspicious -> "Suspicious"
-            else -> binding.otherCategoryInput.text.toString()
+            R.id.btnOther -> binding.otherCategoryInput.text.toString().trim()
+            else -> ""
         }
 
         if (category.isEmpty()) {
@@ -165,14 +186,22 @@ class ReportFragment : Fragment() {
 
     private fun uploadImage(category: String, description: String) {
         val storageRef = Firebase.storage.reference.child("evidence/${UUID.randomUUID()}.jpg")
+        
+        binding.submitButton.text = "Uploading Image..."
+        
         storageRef.putFile(selectedImageUri!!)
-            .addOnSuccessListener {
-                storageRef.downloadUrl.addOnSuccessListener { uri ->
-                    saveToFirestore(category, description, uri.toString())
+            .continueWithTask { task ->
+                if (!task.isSuccessful) {
+                    task.exception?.let { throw it }
                 }
+                // Once the upload is done, get the download URL
+                storageRef.downloadUrl
             }
-            .addOnFailureListener {
-                Toast.makeText(context, "Image upload failed", Toast.LENGTH_SHORT).show()
+            .addOnSuccessListener { downloadUri ->
+                saveToFirestore(category, description, downloadUri.toString())
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(context, "Upload failed: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                 binding.submitButton.isEnabled = true
                 binding.submitButton.text = "Submit Report →"
             }

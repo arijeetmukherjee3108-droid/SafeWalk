@@ -7,9 +7,8 @@
     tools:context=".ui.map.MapFragment">
 
     <!-- Map Canvas -->
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <org.osmdroid.views.MapView
+        android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
@@ -42,6 +41,49 @@
             android:textColor="@color/text"
             android:textColorHint="@color/sub"
             android:textSize="17sp" />
+    </LinearLayout>
+
+    <!-- Selection Overlay (Visible only in Pick Mode) -->
+    <LinearLayout
+        android:id="@+id/selectionLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_panel_rounded"
+        android:backgroundTint="@color/surface"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Incident Location"
+            android:textColor="@color/text"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/selectedLocationText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Tap on the map to select a point"
+            android:textColor="@color/sub"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnConfirmLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/safe"
+            android:text="Confirm Location"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            app:cornerRadius="12dp" />
     </LinearLayout>
 
     <!-- Route Legend -->

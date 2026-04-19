@@ -22,6 +22,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Initialize OSM Configuration
+        org.osmdroid.config.Configuration.getInstance().load(
+            this,
+            android.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        )
+
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
