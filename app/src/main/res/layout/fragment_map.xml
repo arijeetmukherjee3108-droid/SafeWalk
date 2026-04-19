@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="🔍"
-            android:textSize="14sp" />
+            android:textSize="25sp" />
 
         <EditText
             android:layout_width="0dp"
@@ -41,7 +41,7 @@
             android:hint="Where to? Search a destination…"
             android:textColor="@color/text"
             android:textColorHint="@color/sub"
-            android:textSize="8.5sp" />
+            android:textSize="17sp" />
     </LinearLayout>
 
     <!-- Route Legend -->
