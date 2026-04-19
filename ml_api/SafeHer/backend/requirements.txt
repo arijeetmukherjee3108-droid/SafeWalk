@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+web3
+python-dotenv
+pydantic
+firebase-admin
+requests
+python-multipart
+joblib
+numpy
+pandas
+scikit-learn
+xgboost
