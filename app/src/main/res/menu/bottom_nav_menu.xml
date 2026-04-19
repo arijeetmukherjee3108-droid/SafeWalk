@@ -16,4 +16,8 @@
         android:id="@+id/navigation_profile"
         android:icon="@android:drawable/ic_menu_myplaces"
         android:title="Profile" />
+    <item
+        android:id="@+id/navigation_alerts"
+        android:icon="@android:drawable/ic_dialog_alert"
+        android:title="Alerts" />
 </menu>

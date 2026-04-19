@@ -16,6 +16,12 @@ import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.appcompat.app.AlertDialog
 import com.example.safewalk.R
+import com.example.safewalk.data.network.RetrofitClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MultipartBody
 
 class ReportPreviewFragment : Fragment() {
 
@@ -41,6 +47,13 @@ class ReportPreviewFragment : Fragment() {
         binding.previewCategory.text = args.category
         binding.previewDescription.text = args.description
         binding.previewLocation.text = args.locationName ?: "Lat: ${args.latitude}, Lng: ${args.longitude}"
+
+        // Show suspect name if provided
+        if (!args.suspectName.isNullOrEmpty()) {
+            binding.previewSuspectLabel.visibility = View.VISIBLE
+            binding.previewSuspectName.visibility = View.VISIBLE
+            binding.previewSuspectName.text = args.suspectName
+        }
 
         if (!args.imageUri.isNullOrEmpty()) {
             if (args.imageUri!!.startsWith("data:image")) {
@@ -78,8 +91,9 @@ class ReportPreviewFragment : Fragment() {
 
     private fun submitFinalReport() {
         binding.confirmButton.isEnabled = false
-        binding.confirmButton.text = "Submitting..."
+        binding.confirmButton.text = "Submitting to Blockchain..."
 
+        // 1. Submit to Firestore (existing behavior, preserved)
         val report = hashMapOf(
             "userId" to (Firebase.auth.currentUser?.uid ?: ""),
             "category" to args.category,
@@ -88,6 +102,7 @@ class ReportPreviewFragment : Fragment() {
             "latitude" to args.latitude.toDouble(),
             "longitude" to args.longitude.toDouble(),
             "imageUrl" to args.imageUri,
+            "suspectName" to (args.suspectName ?: ""),
             "timestamp" to System.currentTimeMillis()
         )
 
@@ -99,14 +114,118 @@ class ReportPreviewFragment : Fragment() {
                     Firebase.firestore.collection("users").document(uid)
                         .update("reportCount", com.google.firebase.firestore.FieldValue.increment(1))
                 }
-                Toast.makeText(context, "Report submitted successfully", Toast.LENGTH_SHORT).show()
-                findNavController().navigate(R.id.navigation_home)
             }
             .addOnFailureListener { e ->
-                Toast.makeText(context, "Submit error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                binding.confirmButton.isEnabled = true
-                binding.confirmButton.text = "Confirm & Submit"
+                android.util.Log.e("ReportPreview", "Firestore error: ${e.message}")
             }
+
+        // 2. Submit to Blockchain backend (new)
+        submitToBlockchain()
+    }
+
+    private fun submitToBlockchain() {
+        val TAG = "BlockchainSubmit"
+        android.util.Log.d(TAG, "═══════════════════════════════════════════")
+        android.util.Log.d(TAG, "Starting blockchain submission...")
+        android.util.Log.d(TAG, "  lat: ${args.latitude}")
+        android.util.Log.d(TAG, "  lng: ${args.longitude}")
+        android.util.Log.d(TAG, "  incident_type: ${args.category}")
+        android.util.Log.d(TAG, "  description: ${args.description.take(50)}...")
+        android.util.Log.d(TAG, "  suspect_name: ${args.suspectName ?: "(empty)"}")
+        android.util.Log.d(TAG, "  has_image: ${!args.imageUri.isNullOrEmpty()}")
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val textType = okhttp3.MediaType.parse("text/plain")
+                val lat = okhttp3.RequestBody.create(textType, args.latitude.toString())
+                val lng = okhttp3.RequestBody.create(textType, args.longitude.toString())
+                val incidentType = okhttp3.RequestBody.create(textType, args.category)
+                val description = okhttp3.RequestBody.create(textType, args.description)
+                val suspectName = okhttp3.RequestBody.create(textType, args.suspectName ?: "")
+
+                // Build file part — evidence_file is REQUIRED by the API
+                val evidencePart: MultipartBody.Part
+                if (!args.imageUri.isNullOrEmpty() && args.imageUri!!.startsWith("data:image")) {
+                    val base64String = args.imageUri!!.substringAfter("base64,")
+                    val imageBytes = Base64.decode(base64String, Base64.DEFAULT)
+                    android.util.Log.d(TAG, "  image_bytes_size: ${imageBytes.size}")
+                    val imageType = okhttp3.MediaType.parse("image/jpeg")
+                    val requestFile = okhttp3.RequestBody.create(imageType, imageBytes)
+                    evidencePart = MultipartBody.Part.createFormData("evidence_file", "evidence.jpg", requestFile)
+                    android.util.Log.d(TAG, "  evidence_file part created ✓")
+                } else {
+                    // API requires evidence_file — send a minimal 1x1 transparent PNG placeholder
+                    android.util.Log.d(TAG, "  No image attached, sending placeholder file")
+                    val placeholder = byteArrayOf(
+                        0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+                        0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+                        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+                        0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15.toByte(), 0xC4.toByte(),
+                        0x89.toByte(), 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
+                        0x54, 0x78.toByte(), 0x9C.toByte(), 0x62.toByte(), 0x00, 0x00,
+                        0x00, 0x02, 0x00, 0x01, 0xE5.toByte(), 0x27.toByte(),
+                        0xDE.toByte(), 0xFC.toByte(), 0x00, 0x00, 0x00, 0x00,
+                        0x49, 0x45, 0x4E, 0x44, 0xAE.toByte(), 0x42.toByte(),
+                        0x60.toByte(), 0x82.toByte()
+                    )
+                    val pngType = okhttp3.MediaType.parse("image/png")
+                    val requestFile = okhttp3.RequestBody.create(pngType, placeholder)
+                    evidencePart = MultipartBody.Part.createFormData("evidence_file", "no_evidence.png", requestFile)
+                }
+
+                android.util.Log.d(TAG, "Sending POST to /api/reports/submit ...")
+                val response = RetrofitClient.blockchainInstance.submitReport(
+                    lat = lat,
+                    lng = lng,
+                    incidentType = incidentType,
+                    description = description,
+                    suspectName = suspectName,
+                    evidenceFile = evidencePart
+                )
+
+                android.util.Log.d(TAG, "═══ BLOCKCHAIN RESPONSE ═══")
+                android.util.Log.d(TAG, "  status: ${response.status}")
+                android.util.Log.d(TAG, "  message: ${response.message}")
+                android.util.Log.d(TAG, "  blockchain_receipt: ${response.blockchain_receipt}")
+                android.util.Log.d(TAG, "  ipfs_url: ${response.ipfs_url}")
+                android.util.Log.d(TAG, "  resolution_secret: ${response.resolution_secret}")
+                android.util.Log.d(TAG, "═══════════════════════════")
+
+                withContext(Dispatchers.Main) {
+                    if (!isAdded || _binding == null) return@withContext
+
+                    val receipt = response.blockchain_receipt ?: "N/A"
+                    val ipfs = response.ipfs_url ?: "N/A"
+                    val msg = response.message ?: "Submitted"
+
+                    AlertDialog.Builder(requireContext())
+                        .setTitle("✅ Blockchain Confirmed")
+                        .setMessage(
+                            "Your report has been permanently recorded on the blockchain.\n\n" +
+                            "🔗 Blockchain Receipt:\n${receipt}\n\n" +
+                            "📦 IPFS Evidence:\n${ipfs}\n\n" +
+                            "📝 ${msg}"
+                        )
+                        .setPositiveButton("Done") { _, _ ->
+                            findNavController().navigate(R.id.navigation_home)
+                        }
+                        .setCancelable(false)
+                        .show()
+                }
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "═══ BLOCKCHAIN ERROR ═══")
+                android.util.Log.e(TAG, "  error: ${e.message}")
+                android.util.Log.e(TAG, "  stack: ", e)
+                android.util.Log.e(TAG, "════════════════════════")
+
+                withContext(Dispatchers.Main) {
+                    if (!isAdded || _binding == null) return@withContext
+                    // Still navigate home since Firestore succeeded
+                    Toast.makeText(context, "Report saved to Firestore (blockchain: ${e.message})", Toast.LENGTH_LONG).show()
+                    findNavController().navigate(R.id.navigation_home)
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {

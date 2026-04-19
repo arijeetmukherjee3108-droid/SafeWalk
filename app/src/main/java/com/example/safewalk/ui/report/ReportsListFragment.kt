@@ -72,6 +72,8 @@ class ReportsListFragment : Fragment() {
     }
 
     private fun fetchReports() {
+        // All Reports: show every report from Firestore (all users)
+        // My Reports: filter by current user's ID
         var query: Query = Firebase.firestore.collection("reports")
             .orderBy("timestamp", Query.Direction.DESCENDING)
 
@@ -85,7 +87,7 @@ class ReportsListFragment : Fragment() {
         }
 
         query.addSnapshotListener { snapshot, e ->
-            if (e != null) return@addSnapshotListener
+            if (e != null || !isAdded) return@addSnapshotListener
             
             val reports = snapshot?.documents?.mapNotNull { doc ->
                 doc.toObject(Report::class.java)?.copy(id = doc.id)
