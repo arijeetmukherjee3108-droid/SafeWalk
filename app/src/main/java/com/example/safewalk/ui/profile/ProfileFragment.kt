@@ -14,6 +14,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import androidx.navigation.fragment.findNavController
 import android.widget.Toast
 import com.example.safewalk.data.model.User
 import com.google.firebase.firestore.FirebaseFirestore
@@ -126,8 +127,7 @@ class ProfileFragment : Fragment() {
         }
 
         binding.rowReports.setOnClickListener {
-            // TODO: Navigate to My Reports list
-            Toast.makeText(context, "Coming Soon: My Incident Reports", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.navigation_reports_list)
         }
 
         binding.rowNotifications.setOnClickListener {

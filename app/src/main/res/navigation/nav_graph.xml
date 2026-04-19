@@ -24,6 +24,12 @@
         tools:layout="@layout/fragment_report" />
 
     <fragment
+        android:id="@+id/navigation_reports_list"
+        android:name="com.example.safewalk.ui.report.ReportsListFragment"
+        android:label="Reports"
+        tools:layout="@layout/fragment_reports_list" />
+
+    <fragment
         android:id="@+id/navigation_profile"
         android:name="com.example.safewalk.ui.profile.ProfileFragment"
         android:label="Profile"
