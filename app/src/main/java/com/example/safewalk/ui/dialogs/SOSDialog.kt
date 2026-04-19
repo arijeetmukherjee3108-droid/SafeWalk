@@ -85,7 +85,7 @@ class SOSDialog : DialogFragment() {
     private fun sendAlertsToGuardians(locationUrl: String) {
         val userId = auth.currentUser?.uid ?: return
         val userName = auth.currentUser?.displayName ?: "A contact"
-        val message = "$userName is in danger! My current location: $locationUrl"
+        val message = "EMERGENCY: $userName is in danger! Location: $locationUrl"
 
         db.collection("users").document(userId)
             .collection("guardians")
@@ -97,58 +97,60 @@ class SOSDialog : DialogFragment() {
                 }
 
                 for (document in result) {
-                    val phone = document.getString("phone")
-                    val guardianId = document.getString("uid") // This requires the guardian to be registered
+                    val phone = document.getString("phone") ?: ""
+                    val isAppUser = document.getBoolean("isAppUser") ?: false
+                    val guardianUid = document.getString("guardianUid") ?: ""
                     
-                    if (!phone.isNullOrEmpty()) {
+                    if (phone.isNotEmpty()) {
+                        // 1. Send SMS (traditional message)
                         sendSMS(phone, message)
-                    }
-                    
-                    // Logic to find registered users by phone number
-                    if (!phone.isNullOrEmpty()) {
-                        triggerAppNotification(phone, userName, locationUrl)
+                        
+                        // 2. Send App Alert if they have the app
+                        if (isAppUser && guardianUid.isNotEmpty()) {
+                            createAppAlert(guardianUid, userName, locationUrl)
+                        }
                     }
                 }
                 Toast.makeText(requireContext(), "Alerts sent to ${result.size()} guardians", Toast.LENGTH_SHORT).show()
             }
     }
 
-    private fun triggerAppNotification(phone: String, victimName: String, locationUrl: String) {
-        // Query users by phone to find their FCM token
-        db.collection("users")
-            .whereEqualTo("phone", phone)
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                for (doc in querySnapshot) {
-                    val fcmToken = doc.getString("fcmToken")
-                    if (!fcmToken.isNullOrEmpty()) {
-                        // In a real app, this should trigger a Cloud Function
-                        // For this demo, we'll log it to an 'alerts' collection
-                        val alert = hashMapOf(
-                            "toUid" to doc.id,
-                            "fromName" to victimName,
-                            "locationUrl" to locationUrl,
-                            "timestamp" to com.google.firebase.Timestamp.now(),
-                            "type" to "SOS"
-                        )
-                        db.collection("app_alerts").add(alert)
-                    }
-                }
-            }
+    private fun createAppAlert(toUid: String, fromName: String, locationUrl: String) {
+        val alert = hashMapOf(
+            "toUid" to toUid,
+            "fromUid" to (auth.currentUser?.uid ?: ""),
+            "fromName" to fromName,
+            "locationUrl" to locationUrl,
+            "timestamp" to com.google.firebase.Timestamp.now(),
+            "type" to "SOS",
+            "status" to "SENT"
+        )
+        db.collection("app_alerts").add(alert)
     }
 
     private fun sendSMS(phoneNumber: String, message: String) {
         try {
             if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                 val smsManager: SmsManager = requireContext().getSystemService(SmsManager::class.java)
-                smsManager.sendTextMessage(phoneNumber, null, message, null, null)
+                
+                // Standardize phone: remove all non-digits
+                val cleanPhone = phoneNumber.replace("\\D".toRegex(), "")
+                
+                // If it's a 10-digit number (India), optionally add +91 or keep as is.
+                // Most modern networks handle this, but let's ensure it's not empty.
+                if (cleanPhone.isNotEmpty()) {
+                    smsManager.sendTextMessage(cleanPhone, null, message, null, null)
+                    android.util.Log.d("SOSDialog", "SMS Sent to $cleanPhone")
+                } else {
+                    Toast.makeText(requireContext(), "Invalid phone number: $phoneNumber", Toast.LENGTH_SHORT).show()
+                }
             } else {
-                // Requesting permission here might be too late for immediate SOS, 
-                // but we should have it pre-requested.
-                Toast.makeText(requireContext(), "SMS permission missing", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "SMS permission NOT granted!", Toast.LENGTH_LONG).show()
+                // Re-request if possible or show a settings shortcut
             }
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Failed to send SMS: ${e.message}", Toast.LENGTH_SHORT).show()
+            android.util.Log.e("SOSDialog", "SMS Failed", e)
+            Toast.makeText(requireContext(), "SMS Failed: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 

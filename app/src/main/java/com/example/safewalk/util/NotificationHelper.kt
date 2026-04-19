@@ -1,54 +1,53 @@
 package com.example.safewalk.util
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
-import java.io.IOException
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import com.example.safewalk.R
 
 object NotificationHelper {
 
-    private val client = OkHttpClient()
+    private const val CHANNEL_ID = "emergency_alerts"
 
-    /**
-     * Sends an SOS notification to a specific user via their FCM token.
-     * Note: In a production app, this logic should reside in a Backend (Firebase Cloud Functions).
-     * This is a client-side implementation for demonstration purposes.
-     */
-    fun sendSOSNotification(context: Context, victimName: String, locationUrl: String, guardianUid: String) {
-        Firebase.firestore.collection("users").document(guardianUid)
-            .get()
-            .addOnSuccessListener { document ->
-                val fcmToken = document.getString("fcmToken")
-                if (!fcmToken.isNullOrEmpty()) {
-                    triggerFCM(victimName, locationUrl, fcmToken)
-                }
+    fun showLocalNotification(context: Context, title: String, message: String, locationUrl: String) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Emergency SOS Alerts",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Used for receiving emergency alerts from trusted contacts"
+                enableVibration(true)
+                setBypassDnd(true)
             }
-    }
+            notificationManager.createNotificationChannel(channel)
+        }
 
-    private fun triggerFCM(victimName: String, locationUrl: String, targetToken: String) {
-        // IMPORTANT: Sending FCM directly from the app using a Server Key is insecure.
-        // The proper way is using Firebase Cloud Functions.
-        // This is a placeholder showing the structure of the message.
-        
-        val json = JSONObject()
-        val notification = JSONObject()
-        notification.put("title", "EMERGENCY: $victimName")
-        notification.put("body", "I am in danger! Location: $locationUrl")
-        
-        val data = JSONObject()
-        data.put("type", "SOS")
-        data.put("location", locationUrl)
-        
-        json.put("to", targetToken)
-        json.put("notification", notification)
-        json.put("data", data)
+        val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(locationUrl))
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            System.currentTimeMillis().toInt(),
+            mapIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
-        // To make this actually work, you'd need to call an endpoint.
-        // Since we don't have a server set up yet, we will rely on Firestore 
-        // triggers or a Cloud Function to handle this part.
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_sos)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+
+        notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
     }
 }

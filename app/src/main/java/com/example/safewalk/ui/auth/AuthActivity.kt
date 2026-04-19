@@ -99,11 +99,12 @@ class AuthActivity : AppCompatActivity() {
                             val userMap = hashMapOf(
                                 "name" to (user.displayName ?: ""),
                                 "email" to (user.email ?: ""),
+                                "phone" to (user.phoneNumber ?: ""), // Added phone
                                 "uid" to user.uid,
                                 "fcmToken" to fcmToken,
                                 "photoUrl" to (user.photoUrl?.toString() ?: ""),
                                 "lastLogin" to com.google.firebase.Timestamp.now(),
-                                "isGuardianMode" to false,
+                                "isGuardianMode" to true, // Enable guardian mode by default for testing
                                 "guardianCount" to 0,
                                 "reportCount" to 0
                             )
@@ -189,6 +190,14 @@ class AuthActivity : AppCompatActivity() {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    if (user != null) {
+                        com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { tokenTask ->
+                            val fcmToken = if (tokenTask.isSuccessful) tokenTask.result else ""
+                            db.collection("users").document(user.uid)
+                                .update("fcmToken", fcmToken)
+                        }
+                    }
                     navigateToMain()
                 } else {
                     binding.loginButton.isEnabled = true
@@ -222,27 +231,31 @@ class AuthActivity : AppCompatActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     val userId = auth.currentUser?.uid
-                    val user = hashMapOf(
-                        "name" to name,
-                        "phone" to phone,
-                        "email" to email,
-                        "uid" to userId,
-                        "isGuardianMode" to false,
-                        "guardianCount" to 0,
-                        "reportCount" to 0
-                    )
-
                     if (userId != null) {
-                        db.collection("users").document(userId)
-                            .set(user)
-                            .addOnSuccessListener {
-                                navigateToMain()
-                            }
-                            .addOnFailureListener { e ->
-                                binding.loginButton.isEnabled = true
-                                binding.loginButton.text = "Register"
-                                Toast.makeText(this, "Error saving user data: ${e.message}", Toast.LENGTH_LONG).show()
-                            }
+                        com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { tokenTask ->
+                            val fcmToken = if (tokenTask.isSuccessful) tokenTask.result else ""
+                            val user = hashMapOf(
+                                "name" to name,
+                                "phone" to phone,
+                                "email" to email,
+                                "uid" to userId,
+                                "fcmToken" to fcmToken,
+                                "isGuardianMode" to false,
+                                "guardianCount" to 0,
+                                "reportCount" to 0
+                            )
+
+                            db.collection("users").document(userId)
+                                .set(user)
+                                .addOnSuccessListener {
+                                    navigateToMain()
+                                }
+                                .addOnFailureListener { e ->
+                                    binding.loginButton.isEnabled = true
+                                    binding.loginButton.text = "Register"
+                                    Toast.makeText(this, "Error saving user data: ${e.message}", Toast.LENGTH_LONG).show()
+                                }
+                        }
                     }
                 } else {
                     binding.loginButton.isEnabled = true

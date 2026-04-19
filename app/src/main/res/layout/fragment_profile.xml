@@ -77,6 +77,20 @@
 
         <!-- Trusted Contacts -->
         <LinearLayout
+            android:id="@+id/rowPhone"
+            style="@style/ProfileRow"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+            <TextView style="@style/ProfileRowLabel" android:text="Phone Number" />
+            <TextView android:id="@+id/profilePhoneText" style="@style/ProfileBadge" android:text="Add Phone" android:textColor="@color/ember" />
+            <TextView style="@style/ProfileChevron" android:text="›" />
+        </LinearLayout>
+
+        <View style="@style/ProfileDivider" />
+
+        <!-- Trusted Contacts -->
+        <LinearLayout
             android:id="@+id/rowGuardians"
             style="@style/ProfileRow"
             android:clickable="true"
