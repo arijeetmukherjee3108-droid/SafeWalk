@@ -12,35 +12,116 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Search Bar -->
+    <!-- Top Panel: Route Input Card -->
     <LinearLayout
+        android:id="@+id/routeInputCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:background="@drawable/bg_panel_rounded"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="48dp"
+        android:background="@drawable/bg_panel_rounded_14"
         android:backgroundTint="@color/surface"
-        android:elevation="4dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="8dp">
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:paddingHorizontal="14dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="12dp">
 
+        <!-- Title Row -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🔍"
-            android:textSize="25sp" />
-
-        <EditText
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:background="@null"
-            android:hint="Where to? Search a destination…"
+            android:layout_marginBottom="12dp"
+            android:text="Plan Safe Route"
             android:textColor="@color/text"
-            android:textColorHint="@color/sub"
-            android:textSize="17sp" />
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- Start Point -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/bg_icon_safe" />
+
+            <AutoCompleteTextView
+                android:id="@+id/etStartLocation"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_panel_rounded"
+                android:backgroundTint="#1A1A24"
+                android:completionThreshold="2"
+                android:dropDownAnchor="@id/routeInputCard"
+                android:hint="Start point (or use current)"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:paddingHorizontal="12dp"
+                android:popupBackground="@color/surface"
+                android:textColor="@color/text"
+                android:textColorHint="@color/sub"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Dotted connector -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="12dp"
+            android:layout_marginStart="4dp"
+            android:background="@color/sub" />
+
+        <!-- End Point -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/bg_icon_ember" />
+
+            <AutoCompleteTextView
+                android:id="@+id/etSearchLocation"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_panel_rounded"
+                android:backgroundTint="#1A1A24"
+                android:completionThreshold="2"
+                android:dropDownAnchor="@id/routeInputCard"
+                android:hint="Destination"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:paddingHorizontal="12dp"
+                android:popupBackground="@color/surface"
+                android:textColor="@color/text"
+                android:textColorHint="@color/sub"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Find Routes Button -->
+        <Button
+            android:id="@+id/btnFindRoutes"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="@color/safe"
+            android:text="Find Safe Routes"
+            android:textAllCaps="false"
+            android:textColor="@color/color_void"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:cornerRadius="10dp" />
+
     </LinearLayout>
 
     <!-- Selection Overlay (Visible only in Pick Mode) -->
@@ -86,52 +167,107 @@
             app:cornerRadius="12dp" />
     </LinearLayout>
 
-    <!-- Route Legend -->
+    <!-- Route Info Card (shown after routes are found) -->
     <LinearLayout
+        android:id="@+id/routeInfoCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:layout_marginHorizontal="8dp"
-        android:layout_marginBottom="10dp"
-        android:background="@drawable/bg_panel_rounded"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_panel_rounded_14"
         android:backgroundTint="@color/surface"
-        android:elevation="4dp"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Route Analysis"
+            android:textColor="@color/text"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/routeInfoText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:lineSpacingExtra="4dp"
+            android:text="Analyzing routes…"
+            android:textColor="@color/sub"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnStartNav"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="@color/safe"
+            android:text="Select a route to navigate"
+            android:textAllCaps="false"
+            android:textColor="@color/color_void"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:enabled="false"
+            app:cornerRadius="10dp" />
+
+    </LinearLayout>
+
+    <!-- Navigation Active Controls (shown during navigation) -->
+    <LinearLayout
+        android:id="@+id/navControlsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="48dp"
+        android:background="@drawable/bg_panel_rounded_14"
+        android:backgroundTint="@color/surface"
+        android:elevation="10dp"
         android:orientation="horizontal"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="8dp">
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp"
+        android:gravity="center_vertical"
+        android:visibility="gone">
 
         <LinearLayout
-            style="@style/LegendItem"
             android:layout_width="0dp"
-            android:layout_weight="1">
-            <View style="@style/LegendDot" android:backgroundTint="@color/safe" />
-            <TextView style="@style/LegendLabel" android:text="Safest" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Navigation Active"
+                android:textColor="@color/safe"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Following Safe Route"
+                android:textColor="@color/sub"
+                android:textSize="12sp" />
         </LinearLayout>
 
-        <LinearLayout
-            style="@style/LegendItem"
-            android:layout_width="0dp"
-            android:layout_weight="1">
-            <View style="@style/LegendDot" android:backgroundTint="@color/amber" />
-            <TextView style="@style/LegendLabel" android:text="Fastest" />
-        </LinearLayout>
-
-        <LinearLayout
-            style="@style/LegendItem"
-            android:layout_width="0dp"
-            android:layout_weight="1">
-            <View style="@style/LegendDot" android:backgroundTint="@color/ember" />
-            <TextView style="@style/LegendLabel" android:text="Shortest" />
-        </LinearLayout>
-
-        <LinearLayout
-            style="@style/LegendItem"
-            android:layout_width="0dp"
-            android:layout_weight="1">
-            <View style="@style/LegendDot" android:backgroundTint="@color/pulse" />
-            <TextView style="@style/LegendLabel" android:text="Heatmap" />
-        </LinearLayout>
-
+        <Button
+            android:id="@+id/btnStopNav"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:backgroundTint="@color/ember"
+            android:text="Stop"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:cornerRadius="10dp" />
     </LinearLayout>
 
 </FrameLayout>

@@ -20,14 +20,19 @@ import com.example.safewalk.databinding.FragmentReportBinding
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
 import java.io.ByteArrayOutputStream
-import java.util.UUID
+
+import androidx.fragment.app.viewModels
+
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 
 class ReportFragment : Fragment() {
 
     private var _binding: FragmentReportBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: ReportViewModel by viewModels()
     
     private var selectedImageUri: Uri? = null
     private var selectedLocation: String? = null
@@ -37,10 +42,15 @@ class ReportFragment : Fragment() {
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
-            selectedImageUri = it
-            binding.evidenceImage.setImageURI(it)
-            binding.evidenceImage.visibility = View.VISIBLE
-            binding.uploadPlaceholder.visibility = View.GONE
+            viewModel.selectedImageUri.value = it
+            // Also store as bytes for bulletproof upload
+            try {
+                val inputStream = requireContext().contentResolver.openInputStream(it)
+                viewModel.selectedImageData.value = inputStream?.readBytes()
+                inputStream?.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -48,11 +58,13 @@ class ReportFragment : Fragment() {
         if (result.resultCode == Activity.RESULT_OK) {
             val bitmap = result.data?.extras?.get("data") as? Bitmap
             bitmap?.let {
-                val uri = getImageUri(it)
-                selectedImageUri = uri
                 binding.evidenceImage.setImageBitmap(it)
                 binding.evidenceImage.visibility = View.VISIBLE
                 binding.uploadPlaceholder.visibility = View.GONE
+                
+                val bytes = ByteArrayOutputStream()
+                it.compress(Bitmap.CompressFormat.JPEG, 90, bytes)
+                viewModel.selectedImageData.value = bytes.toByteArray()
             }
         }
     }
@@ -60,10 +72,13 @@ class ReportFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setFragmentResultListener("location_request") { _, bundle ->
-            selectedLatitude = bundle.getDouble("lat")
-            selectedLongitude = bundle.getDouble("lng")
-            selectedLocation = bundle.getString("address") ?: "Custom Location"
-            binding.locationText.text = selectedLocation
+            val lat = bundle.getDouble("lat")
+            val lng = bundle.getDouble("lng")
+            val address = bundle.getString("address") ?: "Custom Location"
+            
+            viewModel.selectedLatitude.value = lat
+            viewModel.selectedLongitude.value = lng
+            viewModel.selectedLocation.value = address
         }
     }
 
@@ -74,7 +89,24 @@ class ReportFragment : Fragment() {
     ): View {
         _binding = FragmentReportBinding.inflate(inflater, container, false)
         setupUI()
+        observeViewModel()
         return binding.root
+    }
+
+    private fun observeViewModel() {
+        viewModel.selectedLocation.observe(viewLifecycleOwner) { 
+            binding.locationText.text = it ?: "Select location of the incident"
+        }
+        viewModel.selectedImageUri.observe(viewLifecycleOwner) { uri ->
+            if (uri != null) {
+                binding.evidenceImage.setImageURI(uri)
+                binding.evidenceImage.visibility = View.VISIBLE
+                binding.uploadPlaceholder.visibility = View.GONE
+            } else {
+                binding.evidenceImage.visibility = View.GONE
+                binding.uploadPlaceholder.visibility = View.VISIBLE
+            }
+        }
     }
 
     private fun setupUI() {
@@ -120,6 +152,16 @@ class ReportFragment : Fragment() {
         }
     }
 
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            launchCamera()
+        } else {
+            Toast.makeText(context, "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun showImagePickerOptions() {
         val options = arrayOf("Gallery", "Camera")
         AlertDialog.Builder(requireContext())
@@ -127,13 +169,29 @@ class ReportFragment : Fragment() {
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> pickImage.launch("image/*")
-                    1 -> {
-                        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                        captureImage.launch(intent)
-                    }
+                    1 -> checkCameraPermissionAndLaunch()
                 }
             }
             .show()
+    }
+
+    private fun checkCameraPermissionAndLaunch() {
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                launchCamera()
+            }
+            else -> {
+                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
+
+    private fun launchCamera() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        captureImage.launch(intent)
     }
 
     private fun getImageUri(bitmap: Bitmap): Uri {
@@ -150,7 +208,7 @@ class ReportFragment : Fragment() {
             return
         }
 
-        var category = when (checkedId) {
+        val category = when (checkedId) {
             R.id.btnHarassment -> "Harassment"
             R.id.btnStalking -> "Stalking"
             R.id.btnSuspicious -> "Suspicious"
@@ -169,42 +227,34 @@ class ReportFragment : Fragment() {
             return
         }
 
-        if (selectedLocation == null) {
+        if (viewModel.selectedLocation.value == null) {
             Toast.makeText(context, "Please select a location", Toast.LENGTH_SHORT).show()
             return
         }
 
         binding.submitButton.isEnabled = false
-        binding.submitButton.text = "Uploading..."
+        binding.submitButton.text = "Submitting..."
 
-        if (selectedImageUri != null) {
-            uploadImage(category, description)
+        val imageData = viewModel.selectedImageData.value
+        val imageUrl = if (imageData != null) {
+            // Decode and scale down to fit within Firestore's 1MB doc limit
+            val original = android.graphics.BitmapFactory.decodeByteArray(imageData, 0, imageData.size)
+            val maxDim = 400
+            val scale = minOf(maxDim.toFloat() / original.width, maxDim.toFloat() / original.height, 1f)
+            val scaled = if (scale < 1f) {
+                Bitmap.createScaledBitmap(original, (original.width * scale).toInt(), (original.height * scale).toInt(), true)
+            } else {
+                original
+            }
+            val compressed = ByteArrayOutputStream()
+            scaled.compress(Bitmap.CompressFormat.JPEG, 40, compressed)
+            val base64 = android.util.Base64.encodeToString(compressed.toByteArray(), android.util.Base64.NO_WRAP)
+            "data:image/jpeg;base64,$base64"
         } else {
-            saveToFirestore(category, description, null)
+            null
         }
-    }
 
-    private fun uploadImage(category: String, description: String) {
-        val storageRef = Firebase.storage.reference.child("evidence/${UUID.randomUUID()}.jpg")
-        
-        binding.submitButton.text = "Uploading Image..."
-        
-        storageRef.putFile(selectedImageUri!!)
-            .continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let { throw it }
-                }
-                // Once the upload is done, get the download URL
-                storageRef.downloadUrl
-            }
-            .addOnSuccessListener { downloadUri ->
-                saveToFirestore(category, description, downloadUri.toString())
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(context, "Upload failed: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                binding.submitButton.isEnabled = true
-                binding.submitButton.text = "Submit Report →"
-            }
+        saveToFirestore(category, description, imageUrl)
     }
 
     private fun saveToFirestore(category: String, description: String, imageUrl: String?) {
@@ -212,9 +262,9 @@ class ReportFragment : Fragment() {
             "userId" to (Firebase.auth.currentUser?.uid ?: ""),
             "category" to category,
             "description" to description,
-            "locationName" to selectedLocation,
-            "latitude" to selectedLatitude,
-            "longitude" to selectedLongitude,
+            "locationName" to viewModel.selectedLocation.value,
+            "latitude" to (viewModel.selectedLatitude.value ?: 0.0),
+            "longitude" to (viewModel.selectedLongitude.value ?: 0.0),
             "imageUrl" to imageUrl,
             "timestamp" to System.currentTimeMillis()
         )
@@ -222,11 +272,18 @@ class ReportFragment : Fragment() {
         Firebase.firestore.collection("reports")
             .add(report)
             .addOnSuccessListener {
+                // Increment report count on user profile
+                val uid = Firebase.auth.currentUser?.uid
+                if (uid != null) {
+                    Firebase.firestore.collection("users").document(uid)
+                        .update("reportCount", com.google.firebase.firestore.FieldValue.increment(1))
+                }
                 Toast.makeText(context, "Report submitted successfully", Toast.LENGTH_SHORT).show()
                 findNavController().popBackStack()
             }
-            .addOnFailureListener {
-                Toast.makeText(context, "Failed to submit report", Toast.LENGTH_SHORT).show()
+            .addOnFailureListener { e ->
+                Toast.makeText(context, "Submit error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                android.util.Log.e("ReportFragment", "Firestore write failed", e)
                 binding.submitButton.isEnabled = true
                 binding.submitButton.text = "Submit Report →"
             }
