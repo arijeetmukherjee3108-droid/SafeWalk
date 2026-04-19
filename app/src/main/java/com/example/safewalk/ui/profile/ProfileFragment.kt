@@ -46,6 +46,23 @@ class ProfileFragment : Fragment() {
         fetchUserStats()
         setupListeners()
         setupLogout()
+        syncPhoneDisplay()
+    }
+
+    private fun syncPhoneDisplay() {
+        val uid = auth.currentUser?.uid ?: return
+        db.collection("users").document(uid).addSnapshotListener { snapshot, _ ->
+            if (_binding != null && snapshot != null && snapshot.exists()) {
+                val phone = snapshot.getString("phone")
+                if (!phone.isNullOrEmpty()) {
+                    binding.profilePhoneText.text = phone
+                    binding.profilePhoneText.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.text))
+                } else {
+                    binding.profilePhoneText.text = "Add Phone"
+                    binding.profilePhoneText.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.ember))
+                }
+            }
+        }
     }
 
     private fun displayUserInfo() {
@@ -88,6 +105,10 @@ class ProfileFragment : Fragment() {
 
 
     private fun setupListeners() {
+        binding.rowPhone.setOnClickListener {
+            showPhoneInputDialog()
+        }
+
         binding.guardianModeToggleProfile.setOnCheckedChangeListener { _, isChecked ->
             updateGuardianMode(isChecked)
         }
@@ -134,6 +155,40 @@ class ProfileFragment : Fragment() {
                 navigateToAuth()
             }
         }
+    }
+
+    private fun showPhoneInputDialog() {
+        val builder = android.app.AlertDialog.Builder(requireContext())
+        val dialogView = layoutInflater.inflate(R.layout.dialog_input_phone, null)
+        val phoneInput = dialogView.findViewById<android.widget.EditText>(R.id.phoneInput)
+        
+        // Pre-fill if exists
+        val currentPhone = binding.profilePhoneText.text.toString()
+        if (currentPhone != "Add Phone") {
+            phoneInput.setText(currentPhone)
+        }
+
+        builder.setView(dialogView)
+            .setCancelable(false)
+            .setPositiveButton("Save") { _, _ ->
+                val phone = phoneInput.text.toString().trim()
+                if (phone.length >= 10) {
+                    saveUserPhone(phone)
+                } else {
+                    Toast.makeText(requireContext(), "Enter a valid phone number", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+        
+        builder.create().show()
+    }
+
+    private fun saveUserPhone(phone: String) {
+        val uid = auth.currentUser?.uid ?: return
+        db.collection("users").document(uid).update("phone", phone)
+            .addOnSuccessListener {
+                if (isAdded) Toast.makeText(requireContext(), "Phone updated", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun navigateToAuth() {

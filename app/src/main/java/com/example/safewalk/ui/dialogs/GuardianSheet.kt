@@ -129,34 +129,53 @@ class GuardianSheet : BottomSheetDialogFragment() {
         }
 
         if (userId != null) {
-            val guardian = hashMapOf(
-                "name" to name,
-                "phone" to phone,
-                "timestamp" to System.currentTimeMillis()
-            )
-
             binding.addGuardianButton.isEnabled = false
-            binding.addGuardianButton.text = "Saving..."
+            binding.addGuardianButton.text = "Checking..."
 
-            db.collection("users").document(userId)
-                .collection("guardians")
-                .add(guardian)
-                .addOnSuccessListener {
-                    if (isAdded) {
-                        binding.addGuardianButton.isEnabled = true
-                        binding.addGuardianButton.text = "Add Guardian"
-                        binding.guardianNameInput.text?.clear()
-                        binding.guardianPhoneInput.setText("")
-                        loadGuardians()
-                        Toast.makeText(requireContext(), "Guardian added successfully", Toast.LENGTH_SHORT).show()
+            // Standardize phone for lookup (take last 10 digits)
+            val cleanPhone = phone.replace("\\D".toRegex(), "").takeLast(10)
+
+            // Check if this phone number exists in our users collection
+            db.collection("users")
+                .whereEqualTo("phone", cleanPhone) // Search using standardized 10-digit number
+                .get()
+                .addOnSuccessListener { querySnapshot ->
+                    var isAppUser = false
+                    var guardianUid = ""
+                    
+                    // If not found by exact, we might want a more flexible search, 
+                    // but for now let's check the snapshot
+                    if (!querySnapshot.isEmpty) {
+                        isAppUser = true
+                        guardianUid = querySnapshot.documents[0].id
                     }
+
+                    val guardian = hashMapOf(
+                        "name" to name,
+                        "phone" to phone,
+                        "isAppUser" to isAppUser,
+                        "guardianUid" to guardianUid,
+                        "timestamp" to System.currentTimeMillis()
+                    )
+
+                    db.collection("users").document(userId)
+                        .collection("guardians")
+                        .add(guardian)
+                        .addOnSuccessListener {
+                            if (isAdded) {
+                                binding.addGuardianButton.isEnabled = true
+                                binding.addGuardianButton.text = "Add Guardian"
+                                binding.guardianNameInput.text?.clear()
+                                binding.guardianPhoneInput.setText("")
+                                loadGuardians()
+                                val msg = if (isAppUser) "App user linked!" else "Guardian added (SMS only)"
+                                Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                            }
+                        }
                 }
-                .addOnFailureListener { e ->
-                    if (isAdded) {
-                        binding.addGuardianButton.isEnabled = true
-                        binding.addGuardianButton.text = "Add Guardian"
-                        Toast.makeText(requireContext(), "Error saving: ${e.message}", Toast.LENGTH_SHORT).show()
-                    }
+                .addOnFailureListener {
+                    binding.addGuardianButton.isEnabled = true
+                    binding.addGuardianButton.text = "Add Guardian"
                 }
         }
     }
@@ -174,7 +193,9 @@ class GuardianSheet : BottomSheetDialogFragment() {
                     for (document in result) {
                         val name = document.getString("name") ?: ""
                         val phone = document.getString("phone") ?: ""
-                        addGuardianView(name, phone)
+                        val isAppUser = document.getBoolean("isAppUser") ?: false
+                        val id = document.id
+                        addGuardianView(name, phone, id, isAppUser)
                     }
                     updateGuardianCount(result.size().toInt())
                 }
@@ -190,11 +211,45 @@ class GuardianSheet : BottomSheetDialogFragment() {
             }
     }
 
-    private fun addGuardianView(name: String, phone: String) {
+    private fun addGuardianView(name: String, phone: String, documentId: String, isAppUser: Boolean) {
         val view = LayoutInflater.from(requireContext()).inflate(R.layout.item_guardian, binding.guardianList, false)
         view.findViewById<TextView>(R.id.itemGuardianName).text = name
         view.findViewById<TextView>(R.id.itemGuardianPhone).text = phone
+        
+        val statusTv = view.findViewById<TextView>(R.id.itemGuardianStatus)
+        if (isAppUser) {
+            statusTv.text = "App User"
+            statusTv.setTextColor(ContextCompat.getColor(requireContext(), R.color.safe))
+        } else {
+            statusTv.text = "SMS Only"
+            statusTv.setTextColor(ContextCompat.getColor(requireContext(), R.color.sub))
+        }
+        
+        view.findViewById<View>(R.id.btnDeleteGuardian).setOnClickListener {
+            deleteGuardian(documentId)
+        }
+        
         binding.guardianList.addView(view)
+    }
+
+    private fun deleteGuardian(documentId: String) {
+        val userId = auth.currentUser?.uid ?: return
+        
+        db.collection("users").document(userId)
+            .collection("guardians")
+            .document(documentId)
+            .delete()
+            .addOnSuccessListener {
+                if (isAdded) {
+                    Toast.makeText(requireContext(), "Guardian removed", Toast.LENGTH_SHORT).show()
+                    loadGuardians()
+                }
+            }
+            .addOnFailureListener { e ->
+                if (isAdded) {
+                    Toast.makeText(requireContext(), "Error removing: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
     }
 
     override fun onDestroyView() {

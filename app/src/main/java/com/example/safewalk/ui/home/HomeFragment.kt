@@ -47,6 +47,53 @@ class HomeFragment : Fragment() {
         startPulseAnimation()
         setupListeners()
         syncGuardianMode()
+        checkUserPhone()
+    }
+
+    private fun checkUserPhone() {
+        val uid = auth.currentUser?.uid ?: return
+        db.collection("users").document(uid).get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                val phone = snapshot.getString("phone")
+                if (phone.isNullOrBlank()) {
+                    showPhoneInputDialog()
+                }
+            }
+        }
+    }
+
+    private fun showPhoneInputDialog() {
+        val builder = android.app.AlertDialog.Builder(requireContext())
+        val inflater = layoutInflater
+        val dialogView = inflater.inflate(R.layout.dialog_input_phone, null)
+        val phoneInput = dialogView.findViewById<android.widget.EditText>(R.id.phoneInput)
+
+        builder.setView(dialogView)
+            .setCancelable(false)
+            .setPositiveButton("Save") { _, _ ->
+                val phone = phoneInput.text.toString().trim()
+                if (phone.length >= 10) {
+                    saveUserPhone(phone)
+                } else {
+                    Toast.makeText(requireContext(), "Enter a valid phone number", Toast.LENGTH_SHORT).show()
+                    showPhoneInputDialog() // Re-show if invalid
+                }
+            }
+        
+        builder.create().show()
+    }
+
+    private fun saveUserPhone(phone: String) {
+        val uid = auth.currentUser?.uid ?: return
+        val cleanPhone = phone.replace("\\D".toRegex(), "").takeLast(10)
+        db.collection("users").document(uid).update("phone", cleanPhone)
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "Phone number updated", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Failed to update phone", Toast.LENGTH_SHORT).show()
+                showPhoneInputDialog()
+            }
     }
 
     private fun syncGuardianMode() {

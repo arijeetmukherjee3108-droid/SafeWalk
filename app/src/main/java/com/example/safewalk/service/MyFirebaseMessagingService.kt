@@ -2,11 +2,11 @@ package com.example.safewalk.service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingCorner
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
@@ -53,7 +53,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val channel = NotificationChannel(channelId, name, importance)
             
             if (type == "SOS") {
-                val soundUri = Uri.parse("android.resource://" + packageName + "/" + R.raw.emergency_alarm)
+                val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
                 val audioAttributes = AudioAttributes.Builder()
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
