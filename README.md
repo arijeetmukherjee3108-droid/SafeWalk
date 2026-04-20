@@ -243,6 +243,13 @@ Safety & Geospatial Integration
 
 •On-Chain Transparency: Integrated automated transaction tracking, providing users with Etherscan receipts and IPFS gateways for real-time verification of filed reports.
 
+• Evidences Stored In Pinata In Hashed Format (CID)
+<img width="1913" height="896" alt="image" src="https://github.com/user-attachments/assets/47a260c9-bc04-43a4-9faf-674f04661177" />
+
+• API Testing Interface For Backend
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/43ca627b-3c1b-4d54-8604-8c868508755f" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/80006b5b-2cbe-4169-bb62-2e3eefcf3721" />
+
 ---
 
 ## 🏆 Built For
